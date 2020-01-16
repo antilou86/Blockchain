@@ -104,8 +104,8 @@ class Blockchain(object):
         correct number of leading zeroes.
         :return: True if the resulting hash is a valid proof, False otherwise
         """
-        guess = f"{block_string} {proof}"
-        guess_hash = hashlib.sha256(guess).hexdigest().encode()
+        guess = f"{block_string} {proof}".encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
 
         # return True or False
         return guess_hash[:3] == "000"
@@ -149,4 +149,4 @@ def full_chain():
 
 # Run the program on port 5000
 if __name__ == '__main__':
-    app.run(host='128.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=5000, debug=True)

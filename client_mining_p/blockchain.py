@@ -108,20 +108,23 @@ node_identifier = str(uuid4()).replace('-', '')
 blockchain = Blockchain()
 
 
-@app.route('/mine', methods=['GET'])
+@app.route('/mine', methods=['POST'])
 def mine():
     # Run the proof of work algorithm to get the next proof
-    proof = blockchain.proof_of_work(blockchain.last_block)
+    # proof = blockchain.proof_of_work(blockchain.last_block)
+    data = request.get_json()
     # Forge the new Block by adding it to the chain with the proof
     previous_hash = blockchain.hash(blockchain.last_block)
-    block = blockchain.new_block(proof, previous_hash)
+    block = blockchain.new_block(data['proof'], previous_hash)
 
     response = {
         # TODO: Send a JSON response with the new block
         "new_block" : block
     }
-
-    return jsonify(response), 200
+    if(data["proof"] and data["id"]): #if proof is correct and doesnt already exist.
+        return jsonify(response), 200
+    else:
+        return jsonify("failure"), 400
 
 
 @app.route('/chain', methods=['GET'])
@@ -132,12 +135,14 @@ def full_chain():
         'chain' : blockchain.chain
     }
     return jsonify(response), 200
+    
 @app.route('/last_block', methods=['GET'])
 def last_block():
     response = {
         'last_block': blockchain.chain[len(blockchain.chain)-1]
     }
     return jsonify(response), 200
+    
 # Run the program on port 5000
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)
