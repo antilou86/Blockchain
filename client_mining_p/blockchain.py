@@ -97,6 +97,21 @@ class Blockchain(object):
         # return True or False
         return guess_hash[:6] == "000000"
 
+    def new_transaction(self, sender, recipient, amount):
+        """
+        creates a new transaction to go into the next mined block.
+
+        :param sender: <str> Name of the sender
+        :param recipient: <str> Name of the recipient
+        :param amount: <float> amount of transaction
+        :return: <index> the index of the block that will hold the transaction
+        """    
+        self.current_transactions.append({
+            'sender': sender,
+            'recipient': recipient,
+            'amount': amount
+        })
+        return len(self.chain)
 
 # Instantiate our Node
 app = Flask(__name__)
@@ -107,7 +122,24 @@ node_identifier = str(uuid4()).replace('-', '')
 # Instantiate the Blockchain
 blockchain = Blockchain()
 
+@app.route('/transactions/new', methods=['POST'])
+def new_transaction():
+    data = request.get_json()
 
+    required = ['sender', 'recipient', 'amount']
+    if not all(k in data for k in required):
+        response = {'message': "missing values"}
+        return jsonify(response), 400
+    
+    index = blockchain.new_transaction(data['sender'],
+                                       data['recipient'],
+                                       data['amount'])
+
+    response = {
+        'message': f'transaction will post to block {index}.'
+    }
+    return jsonify(response), 201
+                                    
 @app.route('/mine', methods=['POST'])
 def mine():
     # Run the proof of work algorithm to get the next proof
@@ -122,6 +154,7 @@ def mine():
         "new_block" : block
     }
     if(data["proof"] and data["id"]): #if proof is correct and doesnt already exist.
+
         return jsonify(response), 200
     else:
         return jsonify("failure"), 400
